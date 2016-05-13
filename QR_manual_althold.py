@@ -52,19 +52,18 @@ import time
 import sys
 import os
 
-#sys.path.append('/home/pi/Python3_Library')
-#from Complementary_Filter2 import comp_filt
-#from Read_Config import read_config_file
+sys.path.append('/home/pi/Python3_AP_Library')
+sys.path.append('/home/pi/Navio2/Python/navio')
 
-import Navio2.Python.navio.mpu9250
-import Python3_Library.Complementary_Filter2
-import Python3_Library.Read_Config
-import Python3_Library.PID
-import Navio2.Python.navio.rcinput
-import Navio2.Python.navio.pwm
-import Navio2.Python.navio.leds
-import Python3_Library.MB1242
-import Navio2.Python.navio.ms5611
+import mpu9250
+import Complementary_Filter2
+import Read_Config
+import PID
+import rcinput
+import pwm
+import leds
+import MB1242
+import ms5611
 
 # Exit_flag=0 during normal run and 1 when ready to exit
 exit_flag=0
@@ -87,8 +86,8 @@ RCinput=[0,0,0,0,0]
 
 
 def attitude(processEXIT,output_array):
-    att=Python3_Library.Complementary_Filter2.comp_filt(output_array[6],output_array[7],output_array[8])
-    imu=Navio2.Python.navio.mpu9250.MPU9250()
+    att=Complementary_Filter2.comp_filt(output_array[6],output_array[7],output_array[8])
+    imu=mpu9250.MPU9250()
     imu.initialize()
     time.sleep(1)
     g_offset=[0,0,0]
@@ -146,11 +145,11 @@ def attitude(processEXIT,output_array):
 
 def altitude(processEXIT,output_array,AHRS_array):
     #Range finder initialization
-    RF=Python3_Library.MB1242.MB1242(0x70)
+    RF=MB1242.MB1242(0x70)
     rf_mat=[0.0]*15
     
     #Barometer initialization
-    baro=Navio2.Python.navio.ms5611.MS5611()
+    baro=ms5611.MS5611()
     baro.initialize()
     APRES_B=1013.25
     first_time=1
@@ -369,11 +368,11 @@ def check_CLI_inputs():
 mode=check_CLI_inputs()
 
 # Setup LED
-led=Navio2.Python.navio.leds.Led()
+led=leds.Led()
 led.setColor('Yellow')
 
 # Read user configuration file
-config=Python3_Library.Read_Config.read_config_file('QR_config.txt','QR_calib.txt','QR_mag_calib.txt')
+config=Read_Config.read_config_file('QR_config.txt','QR_calib.txt','QR_mag_calib.txt')
 config.read_configuration_file()
 if (mode==1 or mode==4):
     config.read_calibration_file()
@@ -381,11 +380,11 @@ if (mode==1 or mode==4):
     config.read_magnetometer_calibration_file()
 
 # Setup RCinput and RCoutput
-rcin=Navio2.Python.navio.rcinput.RCInput()
-rcou1=Navio2.Python.navio.pwm.PWM(0)
-rcou2=Navio2.Python.navio.pwm.PWM(1)
-rcou3=Navio2.Python.navio.pwm.PWM(2)
-rcou4=Navio2.Python.navio.pwm.PWM(3)
+rcin=rcinput.RCInput()
+rcou1=pwm.PWM(0)
+rcou2=pwm.PWM(1)
+rcou3=pwm.PWM(2)
+rcou4=pwm.PWM(3)
 rcou1.set_period(config.PWM_FREQ) #Hz
 rcou2.set_period(config.PWM_FREQ)
 rcou3.set_period(config.PWM_FREQ)
@@ -398,10 +397,10 @@ if (mode==1 or mode==4):
     
     # Initialize PID controllers
     # for definitions of variables ... see read_config.py
-    pid_pitch=Python3_Library.PID.PID(config.p_pitch,config.d_pitch,config.i_pitch,config.il_pitch)
-    pid_roll=Python3_Library.PID.PID(config.p_roll,config.d_roll,config.i_roll,config.il_roll)
-    pid_yaw=Python3_Library.PID.PID(config.p_yaw,config.d_yaw,config.i_yaw,config.il_yaw)
-    pid_alt=Python3_Library.PID.PID(config.p_alt,config.d_alt,config.i_alt,config.il_alt)
+    pid_pitch=PID.PID(config.p_pitch,config.d_pitch,config.i_pitch,config.il_pitch)
+    pid_roll=PID.PID(config.p_roll,config.d_roll,config.i_roll,config.il_roll)
+    pid_yaw=PID.PID(config.p_yaw,config.d_yaw,config.i_yaw,config.il_yaw)
+    pid_alt=PID.PID(config.p_alt,config.d_alt,config.i_alt,config.il_alt)
 
     # Start attitude estimation subprocess
     # AHRS_data array format
