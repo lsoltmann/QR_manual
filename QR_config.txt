@@ -1,0 +1,61 @@
+#Configuration file
+#
+#General format for file is:
+#'Variable'
+#<values>
+
+SYS_ORIENTATION
+1
+#1=USB_forward, 2=USB_right, 3=USB_backward, 4=USB_left, when viewed from above
+
+SYS_ORIENTATION_OFFSET
+0.62 -0.61
+#deg offset of system orientation based on aircraft body axis coordinate system (x,y)
+#i.e. pitch offset is set with 'y' and roll offset is set with 'x'
+
+PITCH_PID
+4.5 -1.1 0.01 700.0
+#kp kd ki integrator_limit
+
+ROLL_PID
+4.5 -1.1 0.01 700.0
+#kp kd ki integrator_limit
+
+YAW_PID
+5.5 -1.1 0.01 700.0
+#5.5 -0.5 0.05 700.0
+#kp kd ki integrator_limit
+
+ALT_PID
+8.0 -2.0 0.05 700.0
+#kp kd ki integrator_limit
+
+PWM_RANGE
+1000 2000
+#Absolute minimum and maximum output PWM values (u_sec)
+
+PWM_FREQ
+400
+#Hz
+
+MAX_PITCH
+15
+#deg
+
+MAX_ROLL
+15
+#deg
+
+MAX_YAWRATE
+90
+#deg/s
+
+DEAD_BAND
+5
+#uS
+#Dead band around center where control input equals zero
+#Value given is half of total dead band
+
+THR_CUT
+5
+#Maximum PWM value above minimum throttle setting (from calibration) that all motors remain off
