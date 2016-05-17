@@ -163,8 +163,8 @@ def altitude(processEXIT,output_array,AHRS_array):
     p3=1
     p4=0
 
-    q1=0.001
-    q2=0.001
+    q1=0.1
+    q2=3.0
     r1=0.1
     r2=0.31
 

@@ -21,13 +21,17 @@ from scipy.stats import norm
 import time
 import spidev
 import sys
-import Navio2.Python.navio.mpu9250
-import Navio2.Python.navio.leds
-import Navio2.Python.navio.rcinput
 
-led=Navio2.Python.navio.leds.Led()
-rcin=Navio2.Python.navio.rcinput.RCInput()
-imu=Navio2.Python.navio.mpu9250.MPU9250()
+sys.path.append('/home/pi/Python3_AP_Library')
+sys.path.append('/home/pi/Navio2/Python/navio')
+
+import mpu9250
+import rcinput
+import leds
+
+led=leds.Led()
+rcin=rcinput.RCInput()
+imu=mpu9250.MPU9250()
 imu.initialize()
 time.sleep(1)
 

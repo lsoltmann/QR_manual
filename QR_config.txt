@@ -22,12 +22,12 @@ ROLL_PID
 #kp kd ki integrator_limit
 
 YAW_PID
-5.5 -1.1 0.01 700.0
-#5.5 -0.5 0.05 700.0
+#5.5 -1.1 0.01 700.0
+8.0 -0.75 0.01 700.0
 #kp kd ki integrator_limit
 
 ALT_PID
-8.0 -2.0 0.05 700.0
+7.0 -15.0 0.02 700.0
 #kp kd ki integrator_limit
 
 PWM_RANGE
