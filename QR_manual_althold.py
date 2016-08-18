@@ -153,7 +153,6 @@ def altitude(processEXIT,output_array,AHRS_array):
     #Barometer initialization
     baro=Navio2.Python.navio.ms5611.MS5611()
     baro.initialize()
-    APRES_B=1013.25
     first_time=1
     previous_rf=0
 
