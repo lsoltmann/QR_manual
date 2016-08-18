@@ -8,6 +8,7 @@
     17 Apr 2016 - Replaced threading module with multiprocessing module because python GIL has problems with multithreading   
     28 Apr 2016 - Replaced yaw rate controller with heading hold controller
     04 May 2016 - Added altitude hold option
+    17 Aug 2016 - Moved altitude Kalman filter to a library
  
     Author: Lars Soltmann
     
@@ -64,6 +65,7 @@ import pwm
 import leds
 import MB1242
 import ms5611
+import Kalman_Altitude
 
 # Exit_flag=0 during normal run and 1 when ready to exit
 exit_flag=0
@@ -145,11 +147,11 @@ def attitude(processEXIT,output_array):
 
 def altitude(processEXIT,output_array,AHRS_array):
     #Range finder initialization
-    RF=MB1242.MB1242(0x70)
+    RF=Python3_Library.MB1242.MB1242(0x70)
     rf_mat=[0.0]*15
     
     #Barometer initialization
-    baro=ms5611.MS5611()
+    baro=Navio2.Python.navio.ms5611.MS5611()
     baro.initialize()
     APRES_B=1013.25
     first_time=1
@@ -158,18 +160,7 @@ def altitude(processEXIT,output_array,AHRS_array):
     #Kalman filter initialization
     h1=1
     h2=1
-    p1=1
-    p2=0
-    p3=1
-    p4=0
-
-    q1=0.1
-    q2=3.0
-    r1=0.1
-    r2=0.31
-
-    x1=0
-    x2=0
+    ALT_KF=Python3_Library.Kalman_Altitude([1,0,1,0],[0.001,0.001],[0.1,0.31],[0,0])
 
     tstart=time.time()
     while processEXIT.value==0:
@@ -192,63 +183,26 @@ def altitude(processEXIT,output_array,AHRS_array):
             rf_raw=0
             baro_raw=0
         else:
-            rf_raw=RF.dist*0.0328084
-            baro_raw=-27.4448*(baro.PRES-pavg_ground)
+            rf_raw=RF.dist*0.0328084 #cm to ft
+            baro_raw=-27.4448*(baro.PRES-pavg_ground) #Linearized barometric pressure to altitude
 
         t2=time.time()
         dt=t2-t1
         t_elapsed=t2-tstart
 
-        #Kalman filter for altitude
-        #range finder = 1, barometer = 2
-        z1=rf_raw
-        z2=baro_raw
-
-        #Don't use range finder data if vehicle is above 25ft or too close to ground
+        #range finder = 1, barometer = 2, GPS height = 3, GPS vert velocity = 4
+        #Don't use range finder data if vehicle is above 25ft or value erratically changes
         if ((rf_raw>25) or abs(rf_raw-previous_rf)>1):
             h1=0
         else:
             h1=1
-        #Create simplifications to reduce multiplication calls
-        ksim1=(h1*p1*(h2**2*p1+r2)/(h1**2*p1*r2+r1*h2**2*p1+r1*r2)
-              -h2**2*p1**2*h1/(h1**2*p1*r2+r1*h2**2*p1+r1*r2))
-        ksim2=(-h1**2*p1**2*h2/(h1**2*p1*r2+r1*h2**2*p1+r1*r2)
-              +h2*p1*(h1**2*p1+r1)/(h1**2*p1*r2+r1*h2**2*p1+r1*r2))
-        ksim3=(p3*h1*(h2**2*p1+r2)/(h1**2*p1*r2+r1*h2**2*p1+r1*r2)
-              -p3*h2**2*h1*p1/(h1**2*p1*r2+r1*h2**2*p1+r1*r2))
-        ksim4=(-p3*h1**2*p1*h2/(h1**2*p1*r2+r1*h2**2*p1+r1*r2)
-              +p3*h2*(h1**2*p1+r1)/(h1**2*p1*r2+r1*h2**2*p1+r1*r2))
-        #Correct state estimate
-        xest1=x1+ksim1*(z1-h1*x1)+ksim2*(z2-h2*x1)                 
-        xest2=x2+ksim3*(z1-h1*x1)+ksim4*(z2-h2*x1)
-        #Corect covariance estimates
-        pest1=(1-ksim1*h1-ksim2*h2)*p1
-        pest2=(1-ksim1*h1-ksim2*h2)*p2
-        pest3=(-ksim3*h1-ksim4*h2)*p1+p3
-        pest4=(-ksim3*h1-ksim4*h2)*p2+p4
-        #Predict next state
-        xpred1=x1+ksim1*(z1-h1*x1)+ksim2*(z2-h2*x1)+dt*(x2+ksim3*(z1-h1*x1)+ksim4*(z2-h2*x1))
-        xpred2=x2+ksim3*(z1-h1*x1)+ksim4*(z2-h2*x1)
-        #Predict next covariance matrix
-        ppred1=((1-ksim1*h1-ksim2*h2)*p1+dt*((-ksim3*h1-ksim4*h2)*p1+p3)
-               +((1-ksim1*h1-ksim2*h2)*p2+dt*((-ksim3*h1-ksim4*h2)*p2+p4))*dt+q1)
-        ppred2=(1-ksim1*h1-ksim2*h2)*p2+dt*((-ksim3*h1-ksim4*h2)*p2+p4)
-        ppred3=(-ksim3*h1-ksim4*h2)*p1+p3+dt*((-ksim3*h1-ksim4*h2)*p2+p4)
-        ppred4=(-ksim3*h1-ksim4*h2)*p2+p4+q2
-        #Assign variables for the next loop
-        x1=xpred1
-        x2=xpred2
-        p1=ppred1
-        p2=ppred2
-        p3=ppred3
-        p4=ppred4
+
+        #Use Kalman filter to get altitude
+        [output_array[0],output_array[1]]=ALT_KF.alt_kf([h1,h2,0,0],[rf_raw,baro_raw],dt)
         previous_rf=rf_raw
 
-        #Set outputs
-        output_array[0]=xest1
-        output_array[1]=xest2
-
     return None
+
 
 
 def RCinput_to_angles(RCinput,RC_T_A_constants,target_psi):
