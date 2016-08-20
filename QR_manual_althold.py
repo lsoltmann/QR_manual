@@ -147,11 +147,11 @@ def attitude(processEXIT,output_array):
 
 def altitude(processEXIT,output_array,AHRS_array):
     #Range finder initialization
-    RF=Python3_Library.MB1242.MB1242(0x70)
+    RF=MB1242.MB1242(0x70)
     rf_mat=[0.0]*15
     
     #Barometer initialization
-    baro=Navio2.Python.navio.ms5611.MS5611()
+    baro=ms5611.MS5611()
     baro.initialize()
     first_time=1
     previous_rf=0
@@ -159,7 +159,7 @@ def altitude(processEXIT,output_array,AHRS_array):
     #Kalman filter initialization
     h1=1
     h2=1
-    ALT_KF=Python3_Library.Kalman_Altitude([1,0,1,0],[0.001,0.001],[0.1,0.31],[0,0])
+    ALT_KF=Kalman_Altitude.alt_kalman([1,0,1,0],[0.001,0.001],[0.1,0.31,0,0],[0,0])
 
     tstart=time.time()
     while processEXIT.value==0:
@@ -197,7 +197,7 @@ def altitude(processEXIT,output_array,AHRS_array):
             h1=1
 
         #Use Kalman filter to get altitude
-        [output_array[0],output_array[1]]=ALT_KF.alt_kf([h1,h2,0,0],[rf_raw,baro_raw],dt)
+        [output_array[0],output_array[1]]=ALT_KF.alt_kf([h1,h2,0,0],[rf_raw,baro_raw,0,0],dt)
         previous_rf=rf_raw
 
     return None
