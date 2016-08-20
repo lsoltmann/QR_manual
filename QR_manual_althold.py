@@ -159,7 +159,7 @@ def altitude(processEXIT,output_array,AHRS_array):
     #Kalman filter initialization
     h1=1
     h2=1
-    ALT_KF=Kalman_Altitude.alt_kalman([1,0,1,0],[0.001,0.001],[0.1,0.31,0,0],[0,0])
+    ALT_KF=Kalman_Altitude.alt_kalman([1,0,1,0],[0.001,0.001],[0.1,0.31,1,1],[0,0])
 
     tstart=time.time()
     while processEXIT.value==0:
