@@ -199,7 +199,6 @@ def altitude(processEXIT,output_array,AHRS_array):
         #Use Kalman filter to get altitude
         [output_array[0],output_array[1]]=ALT_KF.alt_kf([h1,h2,0,0],[rf_raw,baro_raw,0,0],dt)
         previous_rf=rf_raw
-
     return None
 
 
@@ -442,11 +441,12 @@ if (mode==1 or mode==4):
 
         # Calculate control inputs
         # order of inputs: target, actual, rate
-        delta_control[0]=pid_roll.control2(targets[0],AHRS_data[0],AHRS_data[4])
-        delta_control[1]=pid_pitch.control2(targets[1],AHRS_data[1],AHRS_data[5])
-        delta_control[3]=pid_yaw.control2(targets[2],AHRS_data[2],AHRS_data[3])
+        delta_control[0]=pid_roll.control2(targets[0],AHRS_data[0],AHRS_data[4],0)
+        delta_control[1]=pid_pitch.control2(targets[1],AHRS_data[1],AHRS_data[5],0)
+        delta_control[3]=pid_yaw.control2(targets[2],AHRS_data[2],AHRS_data[3],0)
         if RCinput[4]<1500:
-            delta_control[2]=pid_alt.control2(ALT_target,ALT_data[0],ALT_data[1])+THR_input_at_hold
+            # PID controller throttle input limited to +/-200 usec + throttle usec at hold
+            delta_control[2]=pid_alt.control2(ALT_target,ALT_data[0],ALT_data[1],200)+THR_input_at_hold+5
         else:
             delta_control[2]=RCinput[2]      
 
