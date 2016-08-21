@@ -9,7 +9,7 @@ SYS_ORIENTATION
 #1=USB_forward, 2=USB_right, 3=USB_backward, 4=USB_left, when viewed from above
 
 SYS_ORIENTATION_OFFSET
-0.62 -0.61
+0.621 -0.611
 #deg offset of system orientation based on aircraft body axis coordinate system (x,y)
 #i.e. pitch offset is set with 'y' and roll offset is set with 'x'
 
@@ -27,7 +27,7 @@ YAW_PID
 #kp kd ki integrator_limit
 
 ALT_PID
-7.0 -15.0 0.02 700.0
+7.0 0.0 0.0 700.0
 #kp kd ki integrator_limit
 
 PWM_RANGE
